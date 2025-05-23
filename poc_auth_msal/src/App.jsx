@@ -1,15 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom'
 
 import Login from './pages/Login'
 
-const App = () => {
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path='/' element={<Login />} />
+  )
+)
 
+const App = ({routes}) => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<Login />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <RouterProvider router={router} />
+    </>
   )
 }
 
