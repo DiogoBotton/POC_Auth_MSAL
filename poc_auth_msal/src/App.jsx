@@ -1,6 +1,6 @@
 import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom'
 
-import Login from './pages/Login'
+import Login from './pages/login/Login'
 
 const router = createBrowserRouter(
   createRoutesFromElements(

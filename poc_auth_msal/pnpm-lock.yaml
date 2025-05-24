@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@azure/msal-browser':
+        specifier: ^4.12.0
+        version: 4.12.0
+      '@azure/msal-react':
+        specifier: ^3.0.12
+        version: 3.0.12(@azure/msal-browser@4.12.0)(react@19.1.0)
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -51,6 +57,21 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@azure/msal-browser@4.12.0':
+    resolution: {integrity: sha512-WD1lmVWchg7wn1mI7Tr4v7QPyTwK+8Nuyje3jRpOFENLRLEBsdK8VVdTw3C+TypZmYn4cOAdj3zREnuFXgvfIA==}
+    engines: {node: '>=0.8.0'}
+
+  '@azure/msal-common@15.6.0':
+    resolution: {integrity: sha512-EotmBz42apYGjqiIV9rDUdptaMptpTn4TdGf3JfjLvFvinSe9BJ6ywU92K9ky+t/b0ghbeTSe9RfqlgLh8f2jA==}
+    engines: {node: '>=0.8.0'}
+
+  '@azure/msal-react@3.0.12':
+    resolution: {integrity: sha512-Rnw1hcx/ILYmbhcPZbhQNdBpf0jE3P0nMiwLKRMqgjnACqOiHQ5+ZZzEIXwEPiva9TPSrW34yvNBTLx8k/5pVg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@azure/msal-browser': ^4.12.0
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -974,6 +995,17 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@azure/msal-browser@4.12.0':
+    dependencies:
+      '@azure/msal-common': 15.6.0
+
+  '@azure/msal-common@15.6.0': {}
+
+  '@azure/msal-react@3.0.12(@azure/msal-browser@4.12.0)(react@19.1.0)':
+    dependencies:
+      '@azure/msal-browser': 4.12.0
+      react: 19.1.0
 
   '@babel/code-frame@7.27.1':
     dependencies:
