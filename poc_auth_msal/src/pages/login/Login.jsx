@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import './style.css'
 import { loginRequest } from '../../authConfig'
@@ -6,11 +6,26 @@ import { loginRequest } from '../../authConfig'
 const Login = () => {
     const { instance } = useMsal()
     const isAuthenticated = useIsAuthenticated()
+    const [photoUrl, setPhotoUrl] = useState(null)
+    const [username, setUsername] = useState("")
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const url = getUserPhoto()
+            setPhotoUrl(url)
+            console.log(url)
+        }
+
+        fetchData()
+            .catch(console.error)
+    }, [])
 
     const handleLogin = () => {
-        instance.loginPopup(loginRequest)
+        instance.loginPopup(loginRequest) // Usar loginRedirect posteriormente
             .then(response => {
                 console.log('Login successful:', response);
+                localStorage.setItem('accessToken', response.accessToken)
+                localStorage.setItem('name', response.account.name)
             })
             .catch(error => {
                 console.error('Login failed:', error);
@@ -27,12 +42,37 @@ const Login = () => {
             });
     }
 
+    const getUserPhoto = async () => {
+        // const account = instance.getAllAccounts()[0];
+        // const result = await instance.acquireTokenSilent({
+        //     account,
+        //     scopes: ["User.Read"],
+        // });
+        // result.accessToken
+
+        let token = localStorage.getItem("accessToken")
+
+        const response = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+
+        if (!response.ok)
+            throw new Error('Erro ao obter foto de perfil')
+
+        const blob = await response.blob()
+        return URL.createObjectURL(blob) // Para usar como src da imagem
+    }
+
     return (
         <div className="login-container">
             <div className="login-box">
                 {isAuthenticated ? (
                     <>
                         <h1 className="login-title">Usuário autenticado!</h1>
+                        {/* <img src={photoUrl} /> */}
+
                         <button className="logout-button" onClick={handleLogout}>
                             Sair
                         </button>
