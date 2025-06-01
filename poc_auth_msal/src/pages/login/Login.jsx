@@ -65,9 +65,16 @@ const Login = () => {
     }
 
     const verifyAuthentication = async () => {
+        const account = instance.getAllAccounts()[0];
+        const result = await instance.acquireTokenSilent({
+            account,
+            scopes: [import.meta.env.VITE_MSAL_SCOPE],
+        });
+        result.accessToken
+
         const response = await fetch('http://localhost:5265/auth', {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                Authorization: `Bearer ${result.accessToken}`
             }
         })
 

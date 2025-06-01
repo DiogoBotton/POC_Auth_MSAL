@@ -17,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet()]
+    [Authorize(Policy = "API.Read.Wolf")]
     public IActionResult Auth()
         => Ok("Autenticação com a microsoft realizada com sucesso!");
 }
