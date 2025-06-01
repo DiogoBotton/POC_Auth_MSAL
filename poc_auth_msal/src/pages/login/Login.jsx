@@ -7,7 +7,6 @@ const Login = () => {
     const { instance } = useMsal()
     const isAuthenticated = useIsAuthenticated()
     const [photoUrl, setPhotoUrl] = useState(null)
-    const [username, setUsername] = useState("")
 
     useEffect(() => {
         const fetchData = async () => {
@@ -65,13 +64,33 @@ const Login = () => {
         return URL.createObjectURL(blob) // Para usar como src da imagem
     }
 
+    const verifyAuthentication = async () => {
+        const response = await fetch('http://localhost:5265/auth', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        })
+
+        console.log(response)
+
+        if (!response.ok)
+            return alert('Não foi possível realizar a autenticação, status: ' + response.status)
+
+        return alert('Autenticação realizada! :) ' + response.status)
+    }
+
     return (
         <div className="login-container">
             <div className="login-box">
                 {isAuthenticated ? (
                     <>
                         <h1 className="login-title">Usuário autenticado!</h1>
-                        {/* <img src={photoUrl} /> */}
+                        <h2>{localStorage.getItem('name')}</h2>
+                        <img src={photoUrl} />
+
+                        <button className="login-button" onClick={verifyAuthentication}>
+                            Verificar autenticação
+                        </button>
 
                         <button className="logout-button" onClick={handleLogout}>
                             Sair

@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Identity.Web;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +14,43 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-builder.Services.AddAuthorization();
+
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "POC MSAL API", Version = "v1" });
+    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            Implicit = new OpenApiOAuthFlow()
+            {
+                AuthorizationUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"),
+                TokenUrl = new Uri("https://login.microsoftonline.com/common/common/v2.0/token"),
+                // Scopes = "" Necessita do Scopes (Criar no azure AD)
+            }
+        }
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement() {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
+                },
+                Scheme = "oauth2",
+                Name = "oauth2",
+                In = ParameterLocation.Header
+            },
+            new List < string > ()
+        }
+    });
+});
+
+builder.Services.AddCors(setup => setup
+                    .AddDefaultPolicy(policy =>
+                        policy.AllowAnyOrigin()
+                                .AllowAnyMethod()
+                                .AllowAnyHeader()));
 
 var app = builder.Build();
 
@@ -19,8 +58,16 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.OAuthAppName("Swagger Client");
+        options.OAuthClientId("72037941-4ee1-47b7-ad8b-af628a103f34");
+        options.OAuthClientSecret("01ef48ca-9e52-4d40-be5d-c4f1d325825f");
+        options.OAuthUseBasicAuthenticationWithAccessCodeGrant();
+    });
 }
+
+app.UseCors();
 
 app.UseAuthorization();
 
