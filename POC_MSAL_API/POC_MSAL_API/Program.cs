@@ -1,61 +1,106 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Identity.Web;
-using Microsoft.OpenApi.Any;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+#region Configuração de Options
+builder.Services.AddOptions<AuthTokenOptions>().Bind(builder.Configuration.GetSection(nameof(AuthTokenOptions)));
+builder.Services.AddOptions<AzureAd>().Bind(builder.Configuration.GetSection(nameof(AzureAd)));
+#endregion
 
-builder.Services.AddAuthorization(opt =>
-{
-    opt.AddPolicy("API.Read.Wolf", policy =>
-    {
-        policy.RequireScope("Api.Read.Wolf");
-    });
-});
-
-var scopes = new Dictionary<string, string>();
-scopes.Add("api://cfbff7ae-fb7f-4d02-bab5-ece4ce7cb11d/API.Read.Wolf", "Autenticação");
+#region Configuração do Swagger
 
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "POC MSAL API", Version = "v1" });
-    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+
+    // Configuração para autenticação JWT no Swagger
+    var jwtSecurityScheme = new OpenApiSecurityScheme()
     {
-        Type = SecuritySchemeType.OAuth2,
-        Flows = new OpenApiOAuthFlows
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Name = "JWT Authentication",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Reference = new OpenApiReference
         {
-            Implicit = new OpenApiOAuthFlow()
-            {
-                AuthorizationUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"),
-                TokenUrl = new Uri("https://login.microsoftonline.com/common/common/v2.0/token"),
-                Scopes = scopes
-            }
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
         }
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement() {
-        {
-            new OpenApiSecurityScheme {
-                Reference = new OpenApiReference {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "oauth2"
-                },
-                Scheme = "oauth2",
-                Name = "oauth2",
-                In = ParameterLocation.Header
-            },
-            new List < string > ()
-        }
+    };
+
+    c.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { jwtSecurityScheme, Array.Empty<string>() }
     });
 });
+#endregion
+
+#region Configuração da autenticação e autorização JWT Bearer padrão e com a Microsoft (Azure AD / Entra ID)
+
+builder.Services.AddAuthentication(op =>
+{
+    op.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    op.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, op =>
+{
+    var authConfig = builder.Configuration.GetSection(nameof(AuthTokenOptions))
+                                          .Get<AuthTokenOptions>();
+
+    op.RequireHttpsMetadata = false;
+    op.SaveToken = true;
+
+    op.TokenValidationParameters = new TokenValidationParameters
+    {
+
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authConfig.Key)),
+
+        ValidateAudience = true,
+        ValidAudience = authConfig.Audience,
+
+        ValidateIssuer = true,
+        ValidIssuer = authConfig.Issuer,
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    op.Events = new JwtBearerEvents
+    {
+        OnChallenge = a =>
+        {
+            a.HttpContext.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        },
+    };
+})
+.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAd)), nameof(AzureAd)); // Autenticação com Microsoft, definido o schema como "AzureId"
+
+// Adicionando Autorização com o escopo da API (API.Auth)
+builder.Services.AddAuthorization(opt =>
+{
+    var azureAdConfig = builder.Configuration.GetSection(nameof(AzureAd))
+                                             .Get<AzureAd>();
+
+    if (string.IsNullOrEmpty(azureAdConfig.Scope))
+        throw new ArgumentException("O escopo não foi configurado no appsettings.json");
+
+    opt.AddPolicy(azureAdConfig.Scope, policy =>
+    {
+        policy.RequireScope(azureAdConfig.Scope); // API.Auth, por exemplo
+    });
+});
+#endregion
+
+#region Liberando CORS
 
 builder.Services.AddCors(setup => setup
                     .AddDefaultPolicy(policy =>
@@ -64,23 +109,19 @@ builder.Services.AddCors(setup => setup
                                 .AllowAnyHeader()));
 
 var app = builder.Build();
+#endregion
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.OAuthAppName("Swagger Client");
-        options.OAuthClientId(builder.Configuration.GetValue<string>("AzureAd:ClientId"));
-        options.OAuthClientSecret(builder.Configuration.GetValue<string>("AzureAd:SecretId"));
-        options.OAuthUseBasicAuthenticationWithAccessCodeGrant();
-    });
+    app.UseSwaggerUI();
 }
 
-app.UseCors();
+app.UseCors(); // Usando configuração de CORS
 
-app.UseAuthorization();
+// Usando configurações de autenticação e autorização
+// OBS: UseAuthentication() deve vir primeiro
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

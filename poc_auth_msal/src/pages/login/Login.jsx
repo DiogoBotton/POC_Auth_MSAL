@@ -19,6 +19,7 @@ const Login = () => {
             .catch(console.error)
     }, [])
 
+    // Função para realizar o login em um PopUp
     const handleLogin = () => {
         instance.loginPopup(loginRequest) // Usar loginRedirect posteriormente
             .then(response => {
@@ -31,6 +32,7 @@ const Login = () => {
             });
     }
 
+    // Função para Logout
     const handleLogout = () => {
         instance.logoutPopup()
             .then(() => {
@@ -41,19 +43,17 @@ const Login = () => {
             });
     }
 
+    // Função para adquirir foto de perfil do usuário
     const getUserPhoto = async () => {
-        // const account = instance.getAllAccounts()[0];
-        // const result = await instance.acquireTokenSilent({
-        //     account,
-        //     scopes: ["User.Read"],
-        // });
-        // result.accessToken
-
-        let token = localStorage.getItem("accessToken")
+        const account = instance.getAllAccounts()[0];
+        const result = await instance.acquireTokenSilent({
+            account,
+            scopes: ["User.Read"], // Esse escopo é necessário para adquirir a foto de perfil do usuário
+        });
 
         const response = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
             headers: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${result.accessToken}`
             }
         })
 
@@ -64,15 +64,17 @@ const Login = () => {
         return URL.createObjectURL(blob) // Para usar como src da imagem
     }
 
+    // Função para testar autenticação na API
     const verifyAuthentication = async () => {
         const account = instance.getAllAccounts()[0];
         const result = await instance.acquireTokenSilent({
             account,
-            scopes: [import.meta.env.VITE_MSAL_SCOPE],
+            scopes: [import.meta.env.VITE_MSAL_API_SCOPE], // Exemplo: "api://<client-id-da-api>/access_as_user"
         });
         result.accessToken
 
-        const response = await fetch('http://localhost:5265/auth', {
+        const response = await fetch('http://localhost:5265/auth/microsoft', {
+            method: 'POST',
             headers: {
                 Authorization: `Bearer ${result.accessToken}`
             }

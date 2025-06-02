@@ -14,9 +14,5 @@ export const msalConfig = { // process.env não funciona no Vite, use import.met
 };
 
 export const loginRequest = {
-  scopes: [
-    "User.Read", // Esse escopo é necessário para adquirir a foto de perfil do usuário
-    import.meta.env.VITE_MSAL_SCOPE,
-    // Exemplo: "api://<client-id-da-api>/access_as_user"
-  ]
+  scopes: [import.meta.env.VITE_MSAL_API_SCOPE] // Exemplo: "api://<client-id-da-api>/access_as_user"
 };
