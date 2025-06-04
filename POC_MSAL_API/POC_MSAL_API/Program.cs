@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// NOTA IMPORTANTE 1: É necessário instalar o NuGet Microsoft.Identity.Web para que a autenticação com Azure AD funcione corretamente.
+// NOTA IMPORTANTE 2: Se a solicitação de autenticação falhar e o código estiver idêntico, verifique se está subindo como https ou http e a solicitação for diferente (por exemplo, subir api em https e fazer solicitação http e vice versa), isso pode causar problemas de autenticação.
+
 #region Configuração de Options
 builder.Services.AddOptions<AuthTokenOptions>().Bind(builder.Configuration.GetSection(nameof(AuthTokenOptions)));
 builder.Services.AddOptions<AzureAd>().Bind(builder.Configuration.GetSection(nameof(AzureAd)));
@@ -47,7 +50,7 @@ builder.Services.AddSwaggerGen(c => {
 
 builder.Services.AddAuthentication(op =>
 {
-    op.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    op.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Define como padrão de autenticação o JWT Bearer
     op.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, op =>
 {
@@ -82,7 +85,7 @@ builder.Services.AddAuthentication(op =>
         },
     };
 })
-.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAd)), nameof(AzureAd)); // Autenticação com Microsoft, definido o schema como "AzureId"
+.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAd)), nameof(AzureAd)); // Autenticação com Microsoft, definido o schema como "AzureAd"
 
 // Adicionando Autorização com o escopo da API (API.Auth)
 builder.Services.AddAuthorization(opt =>
