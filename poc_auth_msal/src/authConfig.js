@@ -25,9 +25,9 @@ export const msalConfigAzureB2C = {
 
     knownAuthorities: [import.meta.env.VITE_MSAL_B2C_DOMAIN], // Domínio conhecido do B2C
 
-    redirectUri: "https://localhost:7294/inicio", // ou seu domínio
+    redirectUri: "http://localhost:5173/b2c", // ou seu domínio
 
-    postLogoutRedirectUri: "https://localhost:7294/", // URL para redirecionar após logout
+    postLogoutRedirectUri: "http://localhost:5173/b2c", // URL para redirecionar após logout
 
     navigateToLoginRequestUrl: false, // Evita redirecionar para a URL original após login
   },

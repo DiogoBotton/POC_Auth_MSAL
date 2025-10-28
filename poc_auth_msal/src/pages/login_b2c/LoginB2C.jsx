@@ -8,8 +8,12 @@ const Login = () => {
   // Função para realizar o login em um PopUp
   const handleLogin = async () => {
     try {
-      let { idToken } = await instance.loginPopup();
-      console.log("idToken", idToken);
+      let response = await instance.loginPopup();
+      console.log("response", response);
+      localStorage.setItem("idToken", response.idToken);
+      localStorage.setItem("socialName", response.idTokenClaims.socialName);
+      localStorage.setItem("cpf", response.idTokenClaims.cpf);
+      localStorage.setItem("email", response.idTokenClaims.email);
     } catch (error) {
       console.log("Erro na autenticação: ", error);
     }
@@ -59,7 +63,9 @@ const Login = () => {
         {isAuthenticated ? (
           <>
             <h1 className="login-title">Usuário autenticado!</h1>
-            <h2>{localStorage.getItem("name")}</h2>
+            <h2>{localStorage.getItem("socialName")}</h2>
+            <h3>{localStorage.getItem("cpf")}</h3>
+            <h3>{localStorage.getItem("email")}</h3>
 
             <button className="login-button" onClick={verifyAuthentication}>
               Verificar autenticação
