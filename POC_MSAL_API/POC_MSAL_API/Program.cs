@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -85,22 +86,8 @@ builder.Services.AddAuthentication(op =>
         },
     };
 })
-.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAd)), nameof(AzureAd)); // Autenticação com Microsoft, definido o schema como "AzureAd"
-
-// Adicionando Autorização com o escopo da API (API.Auth)
-builder.Services.AddAuthorization(opt =>
-{
-    var azureAdConfig = builder.Configuration.GetSection(nameof(AzureAd))
-                                             .Get<AzureAd>();
-
-    if (string.IsNullOrEmpty(azureAdConfig.Scope))
-        throw new ArgumentException("O escopo não foi configurado no appsettings.json");
-
-    opt.AddPolicy(azureAdConfig.Scope, policy =>
-    {
-        policy.RequireScope(azureAdConfig.Scope); // API.Auth, por exemplo
-    });
-});
+.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAdB2C)), nameof(AzureAdB2C)); // Autenticação com Microsoft B2C, definido o schema como "AzureAdB2C"
+//.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection(nameof(AzureAd)), nameof(AzureAd)); // Autenticação com Microsoft AD, definido o schema como "AzureAd"
 #endregion
 
 #region Liberando CORS

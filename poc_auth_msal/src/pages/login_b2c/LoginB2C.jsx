@@ -1,5 +1,6 @@
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import "./style.css";
+import { loginRequestB2C } from "../../authConfig";
 
 const Login = () => {
   const { instance } = useMsal();
@@ -8,7 +9,7 @@ const Login = () => {
   // Função para realizar o login em um PopUp
   const handleLogin = async () => {
     try {
-      let response = await instance.loginPopup();
+      let response = await instance.loginPopup(loginRequestB2C);
       console.log("response", response);
       localStorage.setItem("idToken", response.idToken);
       localStorage.setItem("socialName", response.idTokenClaims.socialName);
@@ -36,25 +37,26 @@ const Login = () => {
     const account = instance.getAllAccounts()[0];
     const result = await instance.acquireTokenSilent({
       account,
-      scopes: [import.meta.env.VITE_MSAL_API_SCOPE], // Exemplo: "api://<client-id-da-api>/access_as_user"
+      scopes: [import.meta.env.VITE_MSAL_B2C_API_SCOPE], // Exemplo: "https://your_b2c_domain_here.onmicrosoft.com/your_b2c_client_id_here/Your.User.Access"
     });
-    result.accessToken;
+    console.log(result);
 
-    const response = await fetch("http://localhost:5265/auth/microsoft", {
+    const response = await fetch("http://localhost:5265/auth/microsoft/b2c", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${result.accessToken}`,
+        Authorization: `Bearer ${result.accessToken ?? result.idToken}`,
       },
     });
 
     console.log(response);
+    let resp = await response.text();
 
     if (!response.ok)
       return alert(
         "Não foi possível realizar a autenticação, status: " + response.status
       );
 
-    return alert("Autenticação realizada! :) " + response.status);
+    return alert(`${resp} | Status: ` + response.status);
   };
 
   return (

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace POC_MSAL_API.Controllers;
@@ -19,9 +20,20 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    [HttpPost("Microsoft/B2C")]
+    [Authorize(AuthenticationSchemes = nameof(AzureAdB2C))]
+    public IActionResult AuthB2C()
+    {
+        string name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Nome não disponível";
+        string email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "Email não disponível"; ;
+        string cpf = User.Claims.FirstOrDefault(c => c.Type == "cpf")?.Value ?? "Email não disponível";
+
+        return Ok($"Autenticação com a microsoft ad realizada com sucesso! Olá {name}, email: {email}, cpf: {cpf}");
+    }
+
     [HttpPost("Microsoft")]
     [Authorize(AuthenticationSchemes = nameof(AzureAd))]
-    public IActionResult Auth()
+    public IActionResult AuthAD()
     {
         string name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Nome não disponível";
         string email = User.Identity.Name ?? "Usuário não autenticado";

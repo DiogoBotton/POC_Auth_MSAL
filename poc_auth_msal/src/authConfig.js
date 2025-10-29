@@ -40,3 +40,7 @@ export const msalConfigAzureB2C = {
 export const loginRequest = {
   scopes: [import.meta.env.VITE_MSAL_API_SCOPE], // Exemplo: "api://<client-id-da-api>/access_as_user"
 };
+
+export const loginRequestB2C = {
+  scopes: [import.meta.env.VITE_MSAL_B2C_API_SCOPE], // Exemplo: "https://your_b2c_domain_here.onmicrosoft.com/your_b2c_client_id_here/Your.User.Access"
+};
