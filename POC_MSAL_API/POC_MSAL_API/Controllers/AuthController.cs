@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     public IActionResult AuthB2C()
     {
         string name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Nome não disponível";
-        string email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "Email não disponível"; ;
+        string email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "Email não disponível";
         string cpf = User.Claims.FirstOrDefault(c => c.Type == "cpf")?.Value ?? "Email não disponível";
 
         return Ok($"Autenticação com a microsoft ad realizada com sucesso! Olá {name}, email: {email}, cpf: {cpf}");
