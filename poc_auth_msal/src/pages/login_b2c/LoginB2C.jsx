@@ -41,11 +41,14 @@ const Login = () => {
     });
     console.log(result);
 
+    // Plataforma Url => http://localhost:5000/api/auth/microsoft
     const response = await fetch("http://localhost:5265/auth/microsoft/b2c", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${result.accessToken ?? result.idToken}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({}), //Definição do content-type e body vazio apenas foi necessário para testar com um projeto do senai (plataforma de auditorias), pra API da poc não precisou
     });
 
     console.log(response);
